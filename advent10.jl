@@ -9,10 +9,8 @@ phase = 0
 pc = 0
 delta_v = 0
 
-while cycle <= 220
-    # if (cycle - 20) % 40 == 0
-    #     push!(stored_v, v*cycle)
-    # end
+while pc < length(lines)
+
     if phase == 0
         pc += 1
         v += delta_v
@@ -28,7 +26,15 @@ while cycle <= 220
     if (cycle - 20) % 40 == 0
         push!(stored_v, v*cycle)
     end
-    println(cycle,":\tV:",v,"\tPC: ", pc, "\tPHASE: ", phase,"\tINS: ", lines[pc])
+    if abs(v - (cycle%40-1)) < 2
+        print("#")
+    else
+        print(".")
+    end
+    if cycle % 40 == 0
+        println()
+    end    
+    # println(cycle,":\tV:",v,"\tPC: ", pc, "\tPHASE: ", phase,"\tINS: ", lines[pc])
     cycle += 1
 end
 
