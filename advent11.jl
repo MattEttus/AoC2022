@@ -1,13 +1,28 @@
+# operation = Meta.parse(split(readline(fp),":")[2])
+# operation = eval(Meta.parse("fn(old) = " * split(readline(fp),"=")[2]))
+
+include("WeirdNums.jl")
 
 mutable struct Monkey
     number::Int
-    items::Array{Int}
+    items::Array{}
     operation
     test
     inspections::Int
 end
 
-function Monkey(fp)
+function get_bases(fp)
+    bases = []
+    while ~eof(fp)
+        line = readline(fp)
+        if occursin("divisible",line)
+            push!(bases,parse(Int,split(line,"by")[2]))
+        end
+    end
+    bases
+end
+
+function Monkey(fp,bases)
     line = ""
     while ~eof(fp) && ~startswith(line, "Monkey")
         line = readline(fp)
@@ -15,12 +30,11 @@ function Monkey(fp)
     number = parse(Int, split(line," ")[2][1:end-1])
     println("Processing monkey #", number)
     items = eval(Meta.parse("["*split(readline(fp),":")[2]*"]"))
+    items_weird = WeirdNum.(items,[bases])
     
-    #operation = Meta.parse(split(readline(fp),":")[2])
     fn_def = "fn$number(old) = " * split(readline(fp),"=")[2]
     println("operation will be: ", fn_def)
     operation = eval(Meta.parse(fn_def))
-    # operation = eval(Meta.parse("fn(old) = " * split(readline(fp),"=")[2]))
     
     factor = parse(Int,split(readline(fp),"by")[2])
     
@@ -34,7 +48,7 @@ function Monkey(fp)
             parse(Int,line2[6])
         end
     end 
-    Monkey(number,items,operation,test, 0)
+    Monkey(number,items_weird,operation,test, 0)
 end
 
 function round(monkeys, num_monkeys)
@@ -43,20 +57,21 @@ function round(monkeys, num_monkeys)
         while ~isempty(monkey.items)
             monkey.inspections += 1
             item = popfirst!(monkey.items)
-            println("Item: ", item)
-            newitem = monkey.operation(item) ÷ 3
-            println("Newitem: ", newitem)
+            newitem = monkey.operation(item) #÷ 3  Change for first half
             push!(monkeys[monkey.test(newitem)].items,newitem)
         end
     end
 end
 
-file = open("advent11.test")
-file = open("advent11.input")
+filename = ("advent11.test", "advent11.input")[2]
 
+file = open(filename)
+bases = get_bases(file)
+
+file = open(filename)
 monkeys = Dict()
 while ~eof(file)
-    monkey = Monkey(file)
+    monkey = Monkey(file,bases)
     monkeys[monkey.number] = monkey
 end
 
@@ -66,7 +81,7 @@ for i in 0:num_monkeys-1
     println(i,": ", monkeys[i].items)
 end
 
-for i in 1:20
+for i in 1:10000
     round(monkeys, num_monkeys)
 end
 
