@@ -56,3 +56,7 @@ function try_move(hmap, stepmap, stepcount, pos, path, solutions, finish)
 end
 
 try_move(hmap,stepmap,0,start,path,solutions,finish)
+
+for startpt in findall(==('a'),hmap)
+    try_move(hmap,stepmap,0,startpt,path,solutions,finish)
+end
