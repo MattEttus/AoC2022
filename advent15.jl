@@ -20,12 +20,37 @@ for line in readlines(filename)
     push!(coords,parse_line(line))
 end
 
+# Using sets this big is pretty inefficient, but works
 extent = Set()
 for (xs, ys, xb, yb) in coords
     dist = sum(abs.((xs,ys).-(xb,yb)))
     ydist = abs(ys-line_of_interest)
     yrem = dist-ydist
-    extent = union(extent,xs-yrem:xs+yrem)
+    union!(extent,xs-yrem:xs+yrem)
 end
 
 println(length(extent)-1)   # not sure why have to subtract 1
+
+extent = []
+for (xs, ys, xb, yb) in coords
+    dist = sum(abs.((xs,ys).-(xb,yb)))
+    ydist = abs(ys-line_of_interest)
+    if dist < ydist
+        continue
+    end
+    yrem = dist-ydist
+    push!(extent,xs-yrem:xs+yrem)
+end
+
+sort!(extent)
+extent2 = []
+s = extent[1][1]
+e = extent[1][end]
+for i in 2:length(extent)
+    if extent[i][1] > e + 1
+        push!(extent2,s:e)
+    else
+        e = max(e,extent[i][end])
+    end
+end
+push!(extent2,s:e)
