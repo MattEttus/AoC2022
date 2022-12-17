@@ -20,37 +20,53 @@ for line in readlines(filename)
     push!(coords,parse_line(line))
 end
 
-# Using sets this big is pretty inefficient, but works
-extent = Set()
-for (xs, ys, xb, yb) in coords
-    dist = sum(abs.((xs,ys).-(xb,yb)))
-    ydist = abs(ys-line_of_interest)
-    yrem = dist-ydist
-    union!(extent,xs-yrem:xs+yrem)
-end
-
-println(length(extent)-1)   # not sure why have to subtract 1
-
-extent = []
-for (xs, ys, xb, yb) in coords
-    dist = sum(abs.((xs,ys).-(xb,yb)))
-    ydist = abs(ys-line_of_interest)
-    if dist < ydist
-        continue
+function coords_to_ranges(coords, line_of_interest)
+    ranges = []
+    for (xs, ys, xb, yb) in coords
+        dist = sum(abs.((xs,ys).-(xb,yb)))
+        ydist = abs(ys-line_of_interest)
+        if dist < ydist
+            continue
+        end
+        yrem = dist-ydist
+        push!(ranges,xs-yrem:xs+yrem)
     end
-    yrem = dist-ydist
-    push!(extent,xs-yrem:xs+yrem)
+    ranges
 end
 
-sort!(extent)
-extent2 = []
-s = extent[1][1]
-e = extent[1][end]
-for i in 2:length(extent)
-    if extent[i][1] > e + 1
-        push!(extent2,s:e)
-    else
-        e = max(e,extent[i][end])
+function consolidate_ranges(ranges)
+    sort!(ranges)
+    out = []
+    s = ranges[1][1]
+    e = ranges[1][end]
+    for i in 2:length(ranges)
+        if ranges[i][1] > e + 1
+            push!(out,s:e)
+            s = ranges[i][1]
+            e = ranges[i][end]
+        else
+            e = max(e,ranges[i][end])
+        end
+    end
+    push!(out,s:e)
+end
+
+ranges = coords_to_ranges(coords, line_of_interest)
+cons = consolidate_ranges(ranges)
+
+println("Part 1 answer: $(length(cons[1])-1)")
+
+function find_broken_range(coords, yrange)
+    Threads.@threads for y in yrange
+        ranges = coords_to_ranges(coords, y)
+        cons = consolidate_ranges(ranges)
+        if length(cons) > 1
+            println("Broken in line $y : $cons")
+            println(cons)
+            return (y,cons)
+        end
     end
 end
-push!(extent2,s:e)
+
+(y, cons) = find_broken_range(coords,0:4000000)
+println("Part 2 Answer = $(y+4000000*(cons[1][end]+1))")
