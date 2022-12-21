@@ -61,6 +61,8 @@ function fill_steam(grid,loc)
 end
 
 total = fill_steam(grid,CartesianIndex(1,1,1))
+
+# Account for outside edges
 total += sum(grid[1,:,:].==rock) + sum(grid[20,:,:].==rock) + sum(grid[:,1,:].==rock) +
     sum(grid[:,20,:].==rock) + sum(grid[:,:,1].==rock) + sum(grid[:,:,20].==rock)
 
