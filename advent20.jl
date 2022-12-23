@@ -5,6 +5,15 @@ mutable struct Item
     value::Int
 end
 
+chain_length(item) = chain_length(item,item,1)
+function chain_length(first,me,count)
+    if me.next != first
+        chain_length(first,me.next,count+1)
+    else
+        count
+    end
+end
+
 print_all(item) = print_all(item,item)
 function print_all(first,me)
     println(me.value)
@@ -20,12 +29,19 @@ function process(items::Vector{Item})
 end
 
 function process(item::Item)
-    if item.value % 5000 == 0
+    if item.value == 0
         return
     end
     sgn = sign(item.value)
+    distance = abs(item.value)
+
+    # Need the following b/c we aren't actually moving the item N times, 
+    #  so it would get counted again the next time around
+    if distance >= 5000
+        distance -= 4999
+    end
     tmp = item
-    for i in 1:abs(item.value)
+    for i in 1:distance
         if sgn == 1
             tmp = tmp.next
         else
@@ -77,15 +93,13 @@ function create_list(vec)
     return (items,myzero)
 end
 
-input = [parse(Int,line) for line in readlines(("advent20.test","advent20.input","advent20.test2")[3])]
+input = [parse(Int,line) for line in readlines(("advent20.test","advent20.input","advent20.test2")[2])];
 
 (items,myzero) = create_list(input);
 print_all(items[1])
-# process(items)
 
-process(items[8]);
+process(items)
 print_all(items[1])
 
 print_result(myzero)
-
-# 8 fails, -8 works
+# 0 works, 8 fails (drops item completely), -8 unchanged, -7 unchanged, 7 unchanged, 9 moves 1 forward, -9 moves 1 backward
