@@ -24,17 +24,17 @@ end
 
 function process(items::Vector{Item})
     for item in items
-        process(item)
+        process(item,length(items))
     end
 end
 
-function process(item::Item)
+function process(item::Item,len)
     sgn = sign(item.value)
     distance = abs(item.value)
 
     # Need the following b/c we aren't actually moving the item N times, 
     #  so it would get counted again the next time around
-    distance = distance % 4999
+    distance = distance % (len-1)
     if distance == 0
         return
     end
@@ -71,12 +71,12 @@ function print_result(item)
     println("Answer for part 1: $total")
 end
 
-function create_list(vec)
+function create_list(vec, key=1)
     items = Vector{Item}()
     myzero = nothing
     
     for (pos, num) in enumerate(vec)
-        push!(items,Item(nothing,nothing,num))
+        push!(items,Item(nothing,nothing,num*key))
         if num == 0
             println("Got a zero at $pos")
             myzero = items[pos]
@@ -91,15 +91,15 @@ function create_list(vec)
     return (items,myzero)
 end
 
-input = [parse(Int,line) for line in readlines(("advent20.test","advent20.input","advent20.test2")[2])];
+input = [parse(Int,line) for line in readlines(("advent20.test","advent20.input")[2])];
 
 (items,myzero) = create_list(input);
-print_all(items[1])
-
 process(items)
-print_all(items[1])
-
 print_result(myzero)  # answer is 13883
 
-chain_length(items[1])
-# 0 works, 8 fails (drops item completely), -8 unchanged, -7 unchanged, 7 unchanged, 9 moves 1 forward, -9 moves 1 backward
+
+(items,myzero) = create_list(input,811589153);
+for i in 1:10
+    process(items)
+end
+print_result(myzero)  # answer is 13883
