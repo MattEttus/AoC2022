@@ -29,16 +29,14 @@ function process(items::Vector{Item})
 end
 
 function process(item::Item)
-    if item.value == 0
-        return
-    end
     sgn = sign(item.value)
     distance = abs(item.value)
 
     # Need the following b/c we aren't actually moving the item N times, 
     #  so it would get counted again the next time around
-    if distance >= 5000
-        distance -= 4999
+    distance = distance % 4999
+    if distance == 0
+        return
     end
     tmp = item
     for i in 1:distance
@@ -101,5 +99,7 @@ print_all(items[1])
 process(items)
 print_all(items[1])
 
-print_result(myzero)
+print_result(myzero)  # answer is 13883
+
+chain_length(items[1])
 # 0 works, 8 fails (drops item completely), -8 unchanged, -7 unchanged, 7 unchanged, 9 moves 1 forward, -9 moves 1 backward
