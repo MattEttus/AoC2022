@@ -26,8 +26,7 @@ end
 
 function cvtbal(vec, str="")
     if vec == []
-        println()
-        return
+        return str
     end
     if vec[1] > 2
         if length(vec) == 1
@@ -35,21 +34,21 @@ function cvtbal(vec, str="")
         end
         vec[1] -= 5
         vec[2] += 1
-        cvtbal(vec)
+        cvtbal(vec, str)
     elseif vec[1] < -2
         if length(vec) == 1
             push!(vec,0)
         end
         vec[1] += 5
         vec[2] -= 1
-        cvtbal(vec)
+        cvtbal(vec, str)
     else
-        print(Dict([(2,"2"),(1,"1"),(0,"0"),(-1,"-"),(-2,"=")])[vec[1]])
-        cvtbal(vec[2:end])
+        cvtbal(vec[2:end], Dict([(2,'2'),(1,'1'),(0,'0'),(-1,'-'),(-2,'=')])[vec[1]] * str )
     end
 end
 
+cvt_bob(x) = cvtbal(reverse(cvt5(x)))
 
-filename = ("advent25.test","advent25.input")[1]
-
-total = sum([convert_from_res5(line) for line in readlines(filename)])
+filename = ("advent25.test","advent25.input")[2]
+answer_1 = cvt_bob(sum([convert_from_res5(line) for line in readlines(filename)]))
+println("Answer for part 1: $answer_1")
