@@ -49,6 +49,7 @@ Base.:<=(a::State, b::State) = reduce(&,a.state.<=b.state)
 function gen_newstates(st::State, bp::Vector{Recipe})
     growth = Recipe([st.state[5:8];zeros(Int,4)])
     newstates = filter(legal,Ref(st) .+ bp)
+    newstates = newstates[1:min(4,length(newstates))]  # if we can build, then force a build
     newstates .+ Ref(growth)
 end
 
