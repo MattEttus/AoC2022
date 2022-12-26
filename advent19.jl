@@ -83,7 +83,7 @@ function run_cycle(current_states::Vector{State}, bp::Vector{Recipe})
     next_phase
 end
 
-function max_field(states::Vector{State}, field)
+function max_field(states::Vector{State}, field::Int)
     fn(st) = st.state[field]
     maximum(fn.(states))
 end
