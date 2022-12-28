@@ -1,6 +1,8 @@
 # advent16.jl
 
 # Routing algorithms
+using Memoize
+
 function make_dist_map(tunnels)
     dist = fill(10000,length(tunnels),length(tunnels))
     for (src,dsts) in enumerate(tunnels)
@@ -28,7 +30,7 @@ function make_dist_map(tunnels)
     dist
 end
 
-function route_step(src,dst,dist)
+@memoize function route_step(src,dst,dist)
     best = 0
     min_dist = 1000
     for next in 1:size(dist)[1]
@@ -59,15 +61,15 @@ struct State
     valves::Vector{Bool}
 end
 
-same_loc(a::State, b::State) = ((a.loc == b.loc) && (a.loc_elephant == b.loc_elephant)) || ((a.loc == b.loc_elephant) && (a.loc_elephant == b.loc))
-
+same_loc(a::State, b::State) = ((a.loc == b.loc) && (a.loc_elephant == b.loc_elephant)) # || ((a.loc == b.loc_elephant) && (a.loc_elephant == b.loc))
+same_goal(a::State, b::State) = ((a.goal == b.goal) && (a.goal_elephant == b.goal_elephant))
 all_on(a::State) = reduce(&,a.valves)
 
 function Base.:>=(a::State, b::State)
     if all_on(a) && a.flow >= b.flow
         return true
     else
-        same_loc(a,b) && (a.flow >= b.flow) && (reduce(&,a.valves .>= b.valves))
+        same_loc(a,b) && same_goal(a,b) && (a.flow >= b.flow) && (reduce(&,a.valves .>= b.valves))
     end
 end
 
@@ -182,6 +184,10 @@ function eval_moves2(moves,states) #::Vector{State}, states::Vector{State})
     states
 end
 
+function eval_moves3(moves,states)
+
+end
+
 function max_flow(states)
     fn(st) = st.flow
     maximum(fn.(states))
@@ -195,7 +201,7 @@ function run_sim(Initial_State,flow_rates,dist,cycles,elephant)
             append!(moves,gen_moves(cur_state, flow_rates, dist, elephant))
         end
         cur_states = moves
-        # global cur_states = eval_moves2(moves, [])
+        #cur_states = eval_moves2(moves, [])
         println("Cycle $cycle: Num states: $(length(cur_states))  Best Flow: $(max_flow(cur_states))")
     end
     max_flow(cur_states)
