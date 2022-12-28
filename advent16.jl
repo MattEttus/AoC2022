@@ -93,13 +93,18 @@ function load_map(filename)
     return names, flow_rates, Initial_State, tunnels
 end
 
-function gen_moves(state,flow_rates,dist) #::State, flow_rates, tunnels)
+function gen_moves(state,flow_rates,dist,use_elephant=false) #::State, flow_rates, tunnels)
     flow = state.flow + sum(state.valves .* flow_rates)
     if all_on(state)
         [State(flow,state.loc,0,state.loc_elephant,0,state.valves)]
     else
         moves = []
-        for el_move in gen_moves2(state,dist)
+        if use_elephant
+            el_moves =  gen_moves2(state,dist)
+        else
+            el_moves = [state]
+        end
+        for el_move in el_moves
             if all_on(el_move)
                 push!(moves,State(flow,el_move.loc,0,el_move.loc_elephant,0,el_move.valves))
             elseif el_move.goal == 0 || el_move.valves[el_move.goal]
@@ -182,14 +187,22 @@ function max_flow(states)
     maximum(fn.(states))
 end
 
-names, flow_rates, Initial_State, tunnels = load_map(("advent16.test","advent16.input")[2])
-
-cur_states = [Initial_State]
-for cycle in 1:26
-    moves = []
-    for cur_state in cur_states
-        append!(moves,gen_moves(cur_state, flow_rates, tunnels))
+function run_sim(Initial_State,flow_rates,dist,cycles,elephant)
+    cur_states = [Initial_State]
+    for cycle in 1:cycles
+        moves = []
+        for cur_state in cur_states
+            append!(moves,gen_moves(cur_state, flow_rates, dist, elephant))
+        end
+        cur_states = moves
+        # global cur_states = eval_moves2(moves, [])
+        println("Cycle $cycle: Num states: $(length(cur_states))  Best Flow: $(max_flow(cur_states))")
     end
-    global cur_states = eval_moves2(moves, [])
-    println("Cycle $cycle: Num states: $(length(cur_states))  Best Flow: $(max_flow(cur_states))")
+    max_flow(cur_states)
 end
+
+names, flow_rates, Initial_State, tunnels = load_map(("advent16.test","advent16.input")[2])
+dist = make_dist_map(tunnels)
+
+println("Part 1: Max Flow = $(run_sim(Initial_State,flow_rates,dist,30,false))")
+println("Part 2: Max Flow = $(run_sim(Initial_State,flow_rates,dist,26,true))")
