@@ -75,11 +75,44 @@ function eval_states(newstates::Vector{State}, next_phase::Vector{State})
     next_phase
 end
 
-function run_cycle(current_states::Vector{State}, bp::Vector{Recipe})
+function eval_states2(newstates::Vector{State}, next_phase::Vector{State})
+    np = next_phase
+    for newstate in newstates
+        flag = true
+        for st in np
+            if st >= newstate
+                flag = false
+                break
+            end
+        end
+        if ~flag
+            continue
+        end
+        filter!(x -> ~(newstate >= x),np)
+        push!(np, newstate)
+    end
+    np
+end
+
+function run_cycle(current_states::Vector{State}, bp::Vector{Recipe},cycle,max_cycles)
     next_phase = Vector{State}()
+
+    if cycle <= max_cycles-3
+        bp_reduced = bp
+    elseif cycle == max_cycles-2
+        bp_reduced = bp[[1,3,4,5]]
+    elseif cycle == max_cycles-1
+        bp_reduced = bp[[4,5]]
+    elseif cycle == max_cycles
+        bp_reduced = bp[[5]]
+    end
     for state in current_states
-        newstates = gen_newstates(state,bp)
-        next_phase = eval_states(newstates, next_phase)
+        newstates = gen_newstates(state,bp_reduced)
+        if cycle <= max_cycles-6
+            next_phase = eval_states2(newstates, next_phase)
+        else
+            append!(next_phase,newstates)
+        end
     end
     next_phase
 end
@@ -89,15 +122,46 @@ function max_field(states::Vector{State}, field::Int)
     maximum(fn.(states))
 end
 
+function run_bp(bp,max_cycles)
+    current_states = [State()]
+    for cycle in 1:max_cycles
+        next_state = run_cycle(current_states,bp,cycle,max_cycles);
+        current_states = next_state;
+        println("Cycle $cycle:\tGeodes:$(max_field(current_states,4))\t:Num states: $(length(current_states))")
+    end
+    max_field(current_states,4)
+end
+
+
 ## Run the program
 
-bps = load_blueprints(("advent19.test","advent19.input")[1])
-bp = bps[1]
-st = State()
-current_states = [st]
+bps = load_blueprints(("advent19.test","advent19.input")[2])
+max_cycles = 24
 
-for cycle in 1:24
-    next_state = run_cycle(current_states,bp);
-    current_states = next_state;
-    println("Cycle $cycle:\tGeodes:$(max_field(current_states,4))\t:Num states: $(length(current_states))")
+println("Threads -- using $(Threads.nthreads())")
+stats = []
+Threads.@threads for num in 1:length(bps)
+    push!(stats,(num,run_bp(bps[num],max_cycles)))
+    println("==============================================================")
+    println("Stats #$num")
+    println(stats)
+    println("==============================================================")
 end
+
+stats = Array([(15,14), (22,15), (16,5), (23,0), (1, 0), (17, 1), (24, 2), (25, 0), (26, 1), 
+(2, 2), (9, 1), (3, 3), (4, 1), (5, 0), (6, 0), (18, 1), (19, 1), (20, 5), (27, 9), (21, 4), 
+(7, 2), (8, 0), (10, 5), (11, 0), (12, 0), (13, 0), (28, 8), (29, 0), (30, 5), (14, 3)])
+
+score = reduce(+,reduce.(*,stats))
+
+max_cycles = 32
+stats = []
+Threads.@threads for num in 1:3
+    push!(stats,(num,run_bp(bps[num],max_cycles)))
+    println("==============================================================")
+    println("Stats #$num")
+    println(stats)
+    println("==============================================================")
+end
+
+stats = [(1,6), (2,31), (3,)]
