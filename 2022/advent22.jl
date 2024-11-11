@@ -10,6 +10,11 @@ function wrap(pos,dir,lim)
     end
 end
 
+function wrap3d(pos,dir,lim)
+
+    return new_pos, new_dir
+end
+
 function read_input(filename)
     points = Dict{CartesianIndex,Bool}()
     rows = 0
@@ -34,7 +39,7 @@ function read_input(filename)
     return lim, commands, points
 end
 
-function run_commands(lim,commands,points)
+function run_commands(lim,commands,points,dims)
     # right, down, left, up
     move = Dict([(0,CartesianIndex(0,1)),(1,CartesianIndex(1,0)),(2,CartesianIndex(0,-1)),(3,CartesianIndex(-1,0))]);
 
@@ -59,7 +64,7 @@ function run_commands(lim,commands,points)
                 else
                     pos += move[dir]
                 end
-            else
+            elseif dims == 2
                 new_p = wrap(pos,dir,lim)
                 # print("wrapped: ",new_p)
                 while new_p ∉ keys(points)
@@ -70,6 +75,8 @@ function run_commands(lim,commands,points)
                 else
                     break
                 end
+            else
+                # 3d wrapping
             end
         end
         if num_finish == length(commands)
@@ -88,5 +95,9 @@ end
 
 filename = ("advent22.test","advent22.input")[2]
 (lim, commands, points) = read_input(filename);
-(pos, dir) = run_commands(lim, commands, points)
+
+(pos, dir) = run_commands(lim, commands, points, 2)
 println("Part 1: $(1000*pos[1]+4*pos[2]+dir)")
+
+(pos, dir) = run_commands(lim, commands, points, 3)
+println("Part 2: $(1000*pos[1]+4*pos[2]+dir)")
